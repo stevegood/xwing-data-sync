@@ -3,8 +3,12 @@ const app = express()
 
 const port = process.env.PORT || 3000
 
-app.get('/', function(req, res){
-  res.send("pong!")
+app.get('/', function(req, res) {
+  res.send("get pong!")
+})
+
+app.post('/', function(req, res) {
+  res.send("post pong!")
 })
 
 app.listen(port, function() {
