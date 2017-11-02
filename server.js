@@ -55,14 +55,13 @@ async function updateXwingData(tag) {
   const xd_repo = await submodule.open()
 
   const xd_tag = await xd_repo.getTagByName(tag)
-  console.log(xd_tag.targetId().toString())
-  await Git.Checkout.tree(xd_repo, xd_tag.targetId(), {
-    checkoutStrategy: Git.Checkout.STRATEGY.SAFE_CREATE
-  })
+  const hash = xd_tag.targetId().toString()
+  console.log(hash)
+  await Git.Checkout.tree(xd_repo, hash)
   xd_repo.setHeadDetached(
     xd_tag.targetId(),
     xd_repo.defaultSignature,
-    "Checkout: HEAD " + xd_tag.targetId()
+    "Checkout: HEAD " + xd_tag.targetId().toString()
   )
   console.log("Should be checked out at " + tag)
 }

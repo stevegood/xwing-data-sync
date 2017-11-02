@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
+    "dev": "nodemon --inspect server.js --ignore tmp/ --exec babel-node",
     "start": "nodemon server.js --ignore tmp/ --exec babel-node"
   },
   "license": "MIT",
