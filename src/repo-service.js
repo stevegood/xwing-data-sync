@@ -68,11 +68,13 @@ const updateXwingData = async (temp_dir, tag) => {
         async: false,
         silent: false
       }
+      shell.exec('pwd', exec_opts)
+      shell.exec('ls', exec_opts)
       console.log('Having yarn install modules...')
       shell.exec('yarn', exec_opts)
   
       console.log('Running release-it...')
-      shell.exec(`node_modules/.bin/release-it ${tag} --non-interactive`, exec_opts)
+      // shell.exec(`node_modules/.bin/release-it ${tag} --non-interactive`, exec_opts)
       shell.cd('../')
       console.log('Done!')
     }
