@@ -1,0 +1,31 @@
+
+@version = 0.39.0
+
+###
+
+POST http://localhost:3000
+Content-Type: application/json
+
+{
+   "description": "",
+   "raw__link__@href": "/guidokessels/xwing-data/releases/tag/{{version}}",
+   "raw__title": "Release {{version}}",
+   "_zap_data_last_live_poll": "1509573783",
+   "guid": "tag:github.com,2008:Repository/51173629/{{version}}",
+   "id": "tag:github.com,2008:Repository/51173629/{{version}}",
+   "raw__thumbnail__@url": "https://avatars2.githubusercontent.com/u/834902?s=60&v=4",
+   "raw__link__@type": "text/html",
+   "raw__author__name": "guidokessels",
+   "raw__updated": "2017-10-28T19:41:35Z",
+   "raw__thumbnail__@height": "30",
+   "pubDate": "2017-10-28T19:41:35Z",
+   "title": "Release {{version}}",
+   "raw__id": "tag:github.com,2008:Repository/51173629/{{version}}",
+   "_zap_data_was_live": "False",
+   "_zap_data_was_cached": "True",
+   "content": "",
+   "raw__link__@rel": "alternate",
+   "raw__thumbnail__@width": "30",
+   "link": "/guidokessels/xwing-data/releases/tag/{{version}}",
+   "raw__content": ""
+}

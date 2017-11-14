@@ -1,6 +1,6 @@
+import fs from 'fs'
 import Git from 'nodegit'
 import path from 'path'
-import shell from 'shelljs'
 
 const updateXwingData = async (temp_dir, tag) => {
   const username = process.env.USERNAME
@@ -19,6 +19,8 @@ const updateXwingData = async (temp_dir, tag) => {
   if (has_tag_already) {
     console.log(`This repo already has a tag named ${tag}. Skipping doing any other work...`)
   } else {
+    const author = Git.Signature.now('Steve Good', 'sgood@lanctr.com')
+    const committer = Git.Signature.now('Steve Good', 'sgood@lanctr.com')
     const submoduleNames = await repo.getSubmoduleNames()
     
     if (submoduleNames.length === 0) return
@@ -42,49 +44,53 @@ const updateXwingData = async (temp_dir, tag) => {
     await Git.Checkout.tree(xd_repo, hash)
     xd_repo.setHeadDetached(hash)
     console.log(`Checked out at ${tag} (${hash})`)
-  
-    console.log('Refreshing the main repo index...')
-    const index = await repo.refreshIndex()
     
-    console.log('Adding all changes to index')
-    await index.addByPath(path.join('.', 'xwing-data'))
-    await index.write()
-    const oidResult = await index.writeTree()
-    const head = await Git.Reference.nameToId(repo, 'HEAD')
-    const parent = await repo.getCommit(head)
+    const commitOid = await repo.createCommitOnHead(
+      [path.join('.', 'xwing-data')],
+      author,
+      committer,
+      `Updating to xwing-data ${tag}`
+    )
     
-    const commit_msg = `Updating to xwing-data ${tag}`
-    console.log(`Adding commit with message "${commit_msg}"`)
-    const author = Git.Signature.now('Steve Good', 'sgood@lanctr.com')
-    const committer = Git.Signature.now('Steve Good', 'sgood@lanctr.com')
-    const commitId = await repo.createCommit('HEAD', author, committer, commit_msg, oidResult, [parent])
-    console.log(`New commit: ${commitId}`)
+    console.log(`New commit: ${commitOid.toString()}`)
   
     // only push if the flag is true
     if (push) {
-      console.log('Tagging and releasing...')
-      shell.cd(temp_dir)
-      const exec_opts = {
-        async: false,
-        silent: false
-      }
+      console.log('Preparing to tag and release...')
       
-      console.log('Having yarn install modules...')
-      shell.exec('yarn', exec_opts)
+      console.log('Loading package.json...')
+      const package_json_path = path.join(__dirname, '..', temp_dir, 'package.json')
+      let package_json_txt = fs.readFileSync(package_json_path)
+      const package_json = JSON.parse(package_json_txt)
+      package_json.version = `${tag}`
       
-      console.log('Inspecting the directory state...')
-      console.log('Current working directory')
-      shell.exec('pwd', exec_opts)
-      console.log('Listing contents...')
-      shell.exec('ls', exec_opts)
-      console.log('Listing contents of ./node_modules...')
-      shell.exec('ls ./node_modules', exec_opts)
-      console.log('Listing contents of ./node_modules/.bin...')
-      shell.exec('ls ./node_modules/.bin', exec_opts)
-  
-      console.log('Running release-it...')
-      // shell.exec(`node_modules/.bin/release-it ${tag} --non-interactive`, exec_opts)
-      shell.cd('../')
+      console.log(`Writing version '${tag}' into package.json...`)
+      fs.writeFileSync(package_json_path, JSON.stringify(package_json, null, '  '))
+      
+      console.log('Adding commit for version change...')
+      const tagCommitOid = await repo.createCommitOnHead(
+        [path.join('.', 'package.json')],
+        author,
+        committer,
+        `Setting version to ${tag}`
+      )
+      console.log(`New commit: ${tagCommitOid.toString()}`)
+
+      console.log(`Tagging repo with '${tag}'...`)
+      const tagRef = await repo.createLightweightTag(tagCommitOid.toString(), tag)
+      console.log(`Created tag: ${tagRef.toString()}`)
+
+      // get the remote
+      const remote = await repo.getRemote('origin')
+
+      console.log('Pushing commits and tags...')
+      const pushResult = await remote.push(
+        [
+          'refs/heads/master:refs/heads/master',
+          tagRef.toString()
+        ]
+      )
+      
       console.log('Done!')
     }
   }
